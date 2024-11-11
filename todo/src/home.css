@@ -1,0 +1,17 @@
+#container {
+  padding: 16px;
+  
+}
+
+li {
+  margin-bottom: 5px;
+}
+.delBtn {
+  margin-left: 10px;
+  background-color: rgb(189, 3, 3);
+}
+.delBtn:hover{
+
+  background-color: rgb(39, 0, 0);
+}
+
