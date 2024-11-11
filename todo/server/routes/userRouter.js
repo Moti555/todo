@@ -7,26 +7,9 @@ const { sign } = jwt;
 
 const router = Router();
 
-/*router.post('/register',(req,res,next) => {
-    hash(req.body.password,10,(error,hashedPassword) => {
-        if (error) next(error);
-        try {
-            pool.query('INSERT INTO account (email,password) VALUES ($1,$2) returning *',
-            [req.body.email,hashedPassword],
-            (error,result) => {
-                if (error) return next (error);
-                return res.status(201).json({id: result.rows[0].id,email: result.rows[0].email});
-                }
-                
-            )
-        } catch (error) {
-            return next(error);
-        }
-    })
-}) */
 
 router.post('/register', postRegistration)
-//router.post('/login', postLogin)
+
 
 router.post('/login',(req,res,next) => {
     const invalid_message = "Invalid credentials."
