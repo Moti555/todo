@@ -5,7 +5,7 @@ import { hash } from 'bcrypt';
 import jwt from 'jsonwebtoken';
 const { sign } = jwt;
 
-const base_url = 'http://localhost:3001/';
+const base_url = 'http://localhost:3001';
 
 describe('GET TASKS',() => {
     before(() => {
@@ -15,7 +15,7 @@ describe('GET TASKS',() => {
         const response = await fetch('http://localhost:3001/');
         const data = await response.json();
 
-        expect(response.status).to.equal(200);
+        expect(response.status).to.equal(200); //vaihda takas 200
         expect(data).to.be.an('array').that.is.not.empty;
         expect(data[0]).to.include.all.keys('id','description');
     })
@@ -31,13 +31,13 @@ const getToken = (email) => {
     return sign({user: email}, process.env.JWT_SECRET_KEY);
 }
 
-describe ('POST task',() => {
+describe ('POST task',() => { 
     const email = "post@foo.com";
     const password = "post123";
     insertTestUser(email,password);
     const token = getToken(email);
     it ("should post a task",async() => {
-        const response = await fetch(base_url + 'create',{
+        const response = await fetch(base_url + '/create',{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -46,15 +46,37 @@ describe ('POST task',() => {
             body: JSON.stringify({description: 'Task from unit test'})
       })
     })
+    
     it('should not post a task without description',async() => {
-        const response = await fetch(base_url + 'create',{
+        const response = await fetch(base_url + '/create',{
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                Authorization: token
             },
-            body: JSON.stringify({'description':null})
-        });
+            body: JSON.stringify({'description': null}) 
+        })
+        const data = await response.json()
+        expect(response.status).to.equal(400, data.error) 
+        expect(data).to.be.an('object')
+        expect(data).to.include.all.keys('error')
     })
+    
+    it('should not post a task with zero length description', async() => {
+        const response = await fetch(base_url + '/create',{
+            method: 'POST',
+            headers: {
+                'Content-Type' : 'application/json',
+                Authorization: token
+            },
+            body: JSON.stringify({'description':''}) 
+        })
+        const data = await response.json()
+        expect(response.status).to.equal(400, data.error) //400
+        expect(data).to.be.an('object')
+        expect(data).to.include.all.keys('error')
+    })
+    
     
 })
 
@@ -64,7 +86,7 @@ describe('DELETE task',() => {
     insertTestUser(email,password);
     const token = getToken(email);
     it ('should delete a task',async() => {
-        const response = await fetch(base_url + 'delete/1',{
+        const response = await fetch(base_url + '/delete/1',{
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -77,7 +99,7 @@ describe('DELETE task',() => {
         expect(data).to.include.all.keys('id');
     })
     it('should not delete a task with SQL injection',async() => {
-        const response = await fetch(base_url + 'delete/id=0 or id > 0',{
+        const response = await fetch(base_url + '/delete/id=0 or id > 0',{
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -85,7 +107,7 @@ describe('DELETE task',() => {
             }
         });
         const data = await response.json();
-        expect(response.status).to.equal(500,data.error);
+        expect(response.status).to.equal(500);
         expect(data).to.be.an('object');
         expect(data).to.include.all.keys('error');
     })
@@ -94,7 +116,7 @@ describe('POST register',() => {
     const email = 'register@foo.com';
     const password = 'register123';
     it ('should register with valid email and password',async() => {
-        const response = await fetch(base_url + 'user/register',{
+        const response = await fetch(base_url + '/user/register',{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -106,29 +128,30 @@ describe('POST register',() => {
         expect(data).to.be.an('object');
         expect(data).to.include.all.keys('id','email');
     })
-    it("should not post a user with less than 8 charecter password",async() =>{
-        const email = "register@fdfaoo.com"
-        const password = "short4"
-        const response = await fetch(base_url + "user/register",{
-            method:"post",
+    it("should not post a user with less than 8 character password", async () => {
+        const email = "register1@foo.com"
+        const password = "short1"
+        const response = await fetch(base_url + "/user/register", {
+            method: "POST",
             headers: {
                 "Content-Type" : "application/json"
             },
-            body: JSON.stringify({"email": email, "password": password})
+            body: JSON.stringify({"email":email, "password":password})
         })
-        const data = await response.json();
-        expect(response.status).to.equal(400,data.error);
-        expect(data).to.be.an('object');
-        expect(data).to.include.all.keys('error');
+        const data = await response.json()
+        expect(response.status).to.equal(400,data.error) //400
+        expect(data).to.be.an("object")
+        expect(data).to.include.all.keys("error")
+             
     })
 })
 
 describe('POST login',() => {
     const email = "login@foo.com";
-    const password = "jeejee123";
+    const password = "login123";
     insertTestUser(email,password);
     it ("should login with valid credentials",async() => {
-        const response = await fetch(base_url + 'user/login',{
+        const response = await fetch(base_url + '/user/login',{
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -136,7 +159,7 @@ describe('POST login',() => {
             body: JSON.stringify({'email': email,'password': password})
         });
         const data = await response.json();
-        expect(response.status).to.equal(200,data.error);
+        expect(response.status).to.equal(200,data.error); //200
         expect(data).to.be.an('object');
         expect(data).to.include.all.keys('id','email','token');
     })

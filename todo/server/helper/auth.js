@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+const { verify } = jwt;
 const authorizationRequired = "Authorization required.";
 const invalidCredentials = "Invalid credentials.";
 
